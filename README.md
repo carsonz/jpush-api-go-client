@@ -9,7 +9,11 @@ jpush-api-go-client
 
 使用  
 ----------------------------------- 
-   go get github.com/ylywyn/jpush-api-go-client
+   go get github.com/carsonz/jpush-api-go-client
+
+Changelog  
+----------------------------------- 
+20161113 增加 jpushclient.SendPushBytesEx，返回PushResponse结构体，包含X-Rate-Limit-*数据
    
    
 推送流程  

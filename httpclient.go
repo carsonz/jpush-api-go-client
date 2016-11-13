@@ -11,8 +11,15 @@ const (
 	CHARSET                    = "UTF-8"
 	CONTENT_TYPE_JSON          = "application/json"
 	DEFAULT_CONNECTION_TIMEOUT = 20 //seconds
-	DEFAULT_SOCKET_TIMEOUT     = 30 // seconds
+	DEFAULT_SOCKET_TIMEOUT     = 30 //seconds
 )
+
+type PushResponse struct {
+	Limit     string `json:"X-Rate-Limit-Limit"`
+	Remaining string `json:"X-Rate-Limit-Remaining"`
+	Reset     string `json:"X-Rate-Limit-Reset"`
+	Body      string
+}
 
 func SendPostString(url, content, authCode string) (string, error) {
 
@@ -44,7 +51,6 @@ func SendPostBytes(url string, content []byte, authCode string) (string, error) 
 }
 
 func SendPostBytes2(url string, data []byte, authCode string) (string, error) {
-
 	client := &http.Client{}
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
 	req.Header.Add("Charset", CHARSET)
@@ -68,4 +74,38 @@ func SendPostBytes2(url string, data []byte, authCode string) (string, error) {
 		return "", err
 	}
 	return string(r), nil
+}
+
+func SendPostBytes2Ex(url string, data []byte, authCode string) (PushResponse, error) {
+	var response PushResponse
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
+	req.Header.Add("Charset", CHARSET)
+	req.Header.Add("Authorization", authCode)
+	req.Header.Add("Content-Type", CONTENT_TYPE_JSON)
+	resp, err := client.Do(req)
+
+	if err != nil {
+		if resp != nil {
+			resp.Body.Close()
+		}
+		return response, err
+	}
+	if resp == nil {
+		return response, nil
+	}
+
+	defer resp.Body.Close()
+	r, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return response, err
+	}
+
+	response = PushResponse{
+		resp.Header.Get("X-Rate-Limit-Limit"),
+		resp.Header.Get("X-Rate-Limit-Remaining"),
+		resp.Header.Get("X-Rate-Limit-Reset"),
+		string(r),
+	}
+	return response, nil
 }

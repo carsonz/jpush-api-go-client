@@ -56,3 +56,15 @@ func (this *PushClient) SendPushBytes(content []byte) (string, error) {
 		return "", errors.New(ret)
 	}
 }
+
+func (this *PushClient) SendPushBytesEx(content []byte) (PushResponse, error) {
+	ret, err := SendPostBytes2Ex(this.BaseUrl, content, this.AuthCode)
+	if err != nil {
+		return ret, err
+	}
+	if strings.Contains(ret.Body, "msg_id") {
+		return ret, nil
+	}
+	return ret, errors.New(ret.Body)
+
+}
